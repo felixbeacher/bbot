@@ -1,13 +1,16 @@
-!pip install feedparser requests
-# The ! tells  Colab to run the command directly in the underlying Linux terminal rather than executing it as Python code.
-# feedparser and requests are the two external libraries to be downloaded"""
-
-# STEP 1 - Set Up the Data Fetchers (Tools):
+import os
+import sys
 import requests
 import feedparser
+from gtts import gTTS
+from google import genai
 
-# Fetches today's weather forecast from Open-Meteo for Hastings
+# ==========================================
+# 1. FETCH DATA (WEATHER & NEWS)
+# ==========================================
+
 def get_weather(lat=50.8552, lon=0.5729):
+    """Fetches today's weather forecast for Hastings from Open-Meteo."""
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
         "latitude": lat,
@@ -32,9 +35,8 @@ def get_weather(lat=50.8552, lon=0.5729):
         print(f"Error fetching weather: {e}")
         return None
 
-# Fetches today's news from the official, public RSS feed on BBC News website
 def get_news_headlines(rss_url="http://feeds.bbci.co.uk/news/rss.xml", limit=5):
-    """Parses top headlines from an RSS feed."""
+    """Parses top headlines from BBC RSS feed."""
     try:
         feed = feedparser.parse(rss_url)
         articles = []
@@ -48,47 +50,28 @@ def get_news_headlines(rss_url="http://feeds.bbci.co.uk/news/rss.xml", limit=5):
         print(f"Error fetching news: {e}")
         return []
 
-# Execute and test
+# ==========================================
+# 2. LOAD CREDENTIALS FROM ENVIRONMENT
+# ==========================================
+
+gemini_api_key = os.getenv("GEMINI_API_KEY")
+id_instance = os.getenv("GREEN_API_INSTANCE_ID")
+token_instance = os.getenv("GREEN_API_TOKEN")
+phone_number = os.getenv("WHATSAPP_PHONE_NUMBER")
+
+if not all([gemini_api_key, id_instance, token_instance, phone_number]):
+    print("❌ MISSING KEYS: Ensure GEMINI_API_KEY, GREEN_API_INSTANCE_ID, GREEN_API_TOKEN, and WHATSAPP_PHONE_NUMBER are set in environment variables.")
+    sys.exit(1)
+
+# ==========================================
+# 3. GENERATE SCRIPT WITH GEMINI
+# ==========================================
+
 weather_data = get_weather()
 news_data = get_news_headlines()
 
-print("--- WEATHER DATA ---")
-print(weather_data)
+client = genai.Client(api_key=gemini_api_key)
 
-print("\n--- TOP HEADLINES ---")
-for idx, item in enumerate(news_data, 1):
-    print(f"{idx}. {item['title']}")
-
-# STEP 2 - Give Your Agent a System Prompt:
-
-# 1. Install Google's Python library (SDK)
-!pip install -q google-genai
-
-import google.genai as genai
-from google.colab import userdata
-
-# 2. Set up the client using your Gemini API key from Colab Secrets
-client = genai.Client(api_key=userdata.get('GEMINI_API_KEY'))
-# client is the app, script, or library that sends a request to a remote server and processes the server's response
-
-# Step 1: Get the API Key
-
-# An API key is a secret password that authenticates your Python script with Google's servers.
-# It tells Google who is making the request and allows access to the Gemini AI models.
-
-# Go to aistudio.google.com and sign in with your Google account.
-# Click key icon (Get API key) on bottom left of screen or use aistudio.google.com/app/apikey
-# Click Create API key and select Create API key in new project.
-# Copy the generated key (starts with AIza...).
-
-# Step 2: Add to Google Colab
-# In Colab, click the Key icon (Secrets) on the left sidebar.
-# Click + Add new secret.
-# Paste your API key into the Value field.
-# Set Name to: GEMINI_API_KEY
-# Turn Notebook access to ON.
-
-# 3. Create the prompt combining the fetched data
 prompt = f"""You are a witty, sarcastic, deadpan morning radio DJ speaking to Felix, who lives in Hastings, UK and likes to be addressed as 'dude'.
 
 Here is the live data for today:
@@ -103,96 +86,53 @@ Write a broadcast script that is around 60 seconds long (approx. 130 words).
 Do not include sound effect notes or visual cues—just write pure spoken text.
 """
 
-# 4. Generate the script
+print("Generating broadcast script...")
 response = client.models.generate_content(
     model='gemini-3.6-flash',
     contents=prompt
 )
 
-print("--- YOUR MORNING RADIO SCRIPT ---")
+print("\n--- YOUR MORNING RADIO SCRIPT ---")
 print(response.text)
 
-# STEP 3 - Convert Script to Audio & Play in Colab
+# ==========================================
+# 4. CONVERT SCRIPT TO AUDIO (MP3)
+# ==========================================
 
-# 1. Install Google Text-to-Speech library
-!pip install -q gTTS
-
-from gtts import gTTS
-from IPython.display import Audio, display
-
-# 2. Convert Gemini's text response to audio (using British accent)
-tts = gTTS(text=response.text, lang='en', tld='co.uk')
 audio_file = 'radio_briefing.mp3'
+tts = gTTS(text=response.text, lang='en', tld='co.uk')
 tts.save(audio_file)
+print(f"\nAudio successfully generated and saved to {audio_file}")
 
-# 3. Play the audio directly in your notebook
-print("--- PLAYING YOUR MORNING BROADCAST ---")
-display(Audio(audio_file, autoplay=True))
+# ==========================================
+# 5. SEND AUDIO FILE VIA WHATSAPP
+# ==========================================
 
-# STEP 5 - Send Audio File to WhatsApp
+chat_id = f"{str(phone_number).strip('+')}@c.us"
+url = f"https://media.green-api.com/waInstance{id_instance}/sendFileByUpload/{token_instance}"
 
-# Click the Key icon (Secrets) on the left sidebar in Colab.
-# Add three new secrets:
+print(f"Sending audio to {chat_id}...")
 
-# Name: GREEN_API_INSTANCE_ID
-# to get the Value: go to https://console.green-api.com/auth
-# stay on the instances tab for all keys....
-# click on Create an Instance
-# click on whatsapp developer
-# you are looking for something like idInstance 710722722908 - the number is the value
+try:
+    with open(audio_file, "rb") as f:
+        files = {'file': (audio_file, f, 'audio/mpeg')}
+        payload = {
+            'chatId': chat_id,
+            'fileName': audio_file
+        }
+        res = requests.post(url, data=payload, files=files)
 
-# Name: GREEN_API_TOKEN
-# the Value will be on the same screen... something like apiTokenInstance ea8b8eeb8df5484bbb0eb85ccbe5d9940ef60645b6b54cd982
+        print(f"Status Code: {res.status_code}")
+        print(f"Server Response: {res.text}")
 
-# Name: WHATSAPP_PHONE_NUMBER | Value: 447123456789 (your UK number without the + or spaces)
-# click on whatsapp developer - your instance number
-# if stuck - click reboot
-# click get QR code
-# open whatsapp - click three dots - linked devices - scan in QR code
-# Status on Green-API should now be 'authorised'
+        data = res.json()
 
-# Toggle Notebook access to ON for all three.
+        print("\n--- Delivery Details ---")
+        print("✅ Success! Your audio file was processed by the server.")
+        print(f"• Message ID: {data.get('idMessage')}")
+        print(f"• Hosted File Link: {data.get('urlFile')}")
 
-import requests
-from google.colab import userdata
-
-# Fetch credentials from Colab Secrets
-id_instance = userdata.get("GREEN_API_INSTANCE_ID")
-token_instance = userdata.get("GREEN_API_TOKEN")
-phone_number = userdata.get("WHATSAPP_PHONE_NUMBER")
-
-# 1. Check if variables exist
-if not all([id_instance, token_instance, phone_number]):
-    print("❌ MISSING KEYS: Make sure instance ID, token, and phone number are all set in Colab Secrets.")
-else:
-    # Format phone number and endpoint (using media host for files)
-    chat_id = f"{str(phone_number).strip('+')}@c.us"
-    url = f"https://media.green-api.com/waInstance{id_instance}/sendFileByUpload/{token_instance}"
-
-    print(f"Sending audio to {chat_id}...")
-
-    try:
-        with open("radio_briefing.mp3", "rb") as f:
-            files = {'file': ('radio_briefing.mp3', f, 'audio/mpeg')}
-            payload = {
-                'chatId': chat_id,
-                'fileName': 'radio_briefing.mp3'
-            }
-            res = requests.post(url, data=payload, files=files)
-
-            print(f"Status Code: {res.status_code}")
-            print(f"Server Response: {res.text}")
-
-            # Parse the JSON response
-            data = res.json()
-
-            # Print clear, interpreted results
-            print("\n--- Delivery Details ---")
-            print(f"✅ Success! Your audio file was processed by the server.")
-            print(f"• Message ID: {data.get('idMessage')}")
-            print(f"  (Unique tracking ID generated by WhatsApp for this message)")
-            print(f"• Hosted File Link: {data.get('urlFile')}")
-            print(f"  (Temporary cloud link storing your MP3 on Green API servers)")
-
-    except FileNotFoundError:
-        print("❌ ERROR: radio_briefing.mp3 not found. Run Step 4 first.")
+except FileNotFoundError:
+    print(f"❌ ERROR: {audio_file} not found.")
+except Exception as e:
+    print(f"❌ ERROR sending message: {e}")
