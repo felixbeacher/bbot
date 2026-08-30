@@ -1,1 +1,32 @@
+name: Daily Morning Broadcast
 
+on:
+  schedule:
+    # 07:00 UTC = 8:00 AM BST (UK daylight saving time)
+    - cron: '0 7 * * *'
+  workflow_dispatch: # Enables manual "Run workflow" testing button
+
+jobs:
+  run-daily-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run broadcast script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GREEN_API_INSTANCE_ID: ${{ secrets.GREEN_API_INSTANCE_ID }}
+          GREEN_API_TOKEN: ${{ secrets.GREEN_API_TOKEN }}
+          WHATSAPP_PHONE_NUMBER: ${{ secrets.WHATSAPP_PHONE_NUMBER }}
+        run: python bbot
