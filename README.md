@@ -1,2 +1,2 @@
 # bbot
-morning briefing bot for news and weather
+morning briefing bot for news and weather, developed by Felix Beacher
