@@ -1,0 +1,4 @@
+requests
+feedparser
+gTTS
+google-genai
