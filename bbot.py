@@ -1,9 +1,9 @@
-import os
-import sys
-import requests
-import feedparser
-from gtts import gTTS
-from google import genai
+import os  # Provides functions for interacting with the OS, such as managing file paths and environment variables.
+import sys  # System-specific parameters and functions used to interact closely with the Python interpreter.
+import requests  # HTTP library used for sending network requests to retrieve web content or APIs.
+import feedparser  # Parser library designed for fetching and extracting data from RSS and Atom news feeds.
+from gtts import gTTS  # Google Text-to-Speech library used to convert written text into spoken audio files.
+from google import genai  # client library for interacting with Gemini models.
 
 # ==========================================
 # 1. FETCH DATA (WEATHER & NEWS)
@@ -86,14 +86,10 @@ Write a broadcast script that is around 60 seconds long (approx. 130 words).
 Do not include sound effect notes or visual cues—just write pure spoken text.
 """
 
-print("Generating broadcast script...")
 response = client.models.generate_content(
     model='gemini-3.6-flash',
     contents=prompt
 )
-
-print("\n--- YOUR MORNING RADIO SCRIPT ---")
-print(response.text)
 
 # ==========================================
 # 4. CONVERT SCRIPT TO AUDIO (MP3)
@@ -102,16 +98,13 @@ print(response.text)
 audio_file = 'radio_briefing.mp3'
 tts = gTTS(text=response.text, lang='en', tld='co.uk')
 tts.save(audio_file)
-print(f"\nAudio successfully generated and saved to {audio_file}")
 
 # ==========================================
 # 5. SEND AUDIO FILE VIA WHATSAPP
 # ==========================================
 
-chat_id = f"{str(phone_number).strip('+')}@c.us"
+chat_id = f"{phone_number.strip('+')}@c.us"
 url = f"https://media.green-api.com/waInstance{id_instance}/sendFileByUpload/{token_instance}"
-
-print(f"Sending audio to {chat_id}...")
 
 try:
     with open(audio_file, "rb") as f:
@@ -121,16 +114,7 @@ try:
             'fileName': audio_file
         }
         res = requests.post(url, data=payload, files=files)
-
-        print(f"Status Code: {res.status_code}")
-        print(f"Server Response: {res.text}")
-
-        data = res.json()
-
-        print("\n--- Delivery Details ---")
-        print("✅ Success! Your audio file was processed by the server.")
-        print(f"• Message ID: {data.get('idMessage')}")
-        print(f"• Hosted File Link: {data.get('urlFile')}")
+        res.raise_for_status()
 
 except FileNotFoundError:
     print(f"❌ ERROR: {audio_file} not found.")
