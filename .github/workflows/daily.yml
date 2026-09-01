@@ -2,8 +2,8 @@ name: Daily Morning Broadcast
 
 on:
   schedule:
-    # 07:00 UTC = 8:00 AM BST (UK daylight saving time)
-    - cron: '0 7 * * *'
+    # 06:17 UTC = 07:17 BST (UK daylight savings time)
+    - cron: '17 6 * * *'
   workflow_dispatch: # Enables manual "Run workflow" testing button
 
 jobs:
@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
