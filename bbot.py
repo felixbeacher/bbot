@@ -72,18 +72,23 @@ news_data = get_news_headlines()
 
 client = genai.Client(api_key=gemini_api_key)
 
-prompt = f"""You are a witty, sarcastic, deadpan morning radio DJ speaking to Felix, who lives in Hastings, UK and likes to be addressed as 'dude'.
+prompt = f"""You are a witty, sarcastic, deadpan commentator speaking to 'Dude'.
 
 Here is the live data for today:
 - Weather: {weather_data}
 - Headlines: {news_data}
 
-Write a broadcast script that is around 60 seconds long (approx. 130 words).
-- Start with a punchy introduction and a joke.
-- Give a brief weather summary for Hastings (mention if he will need an umbrella for the day).
-- Cover 2 or 3 of the most interesting headlines in a conversational style.
-- End with an upbeat sign-off and some provoking philosophical thought.
-Do not include sound effect notes or visual cues—just write pure spoken text.
+Write a broadcast script of approximately 250 to 300 words (around 2 minutes spoken length). Do not include sound effect notes, stage directions, or visual cues—write pure spoken text only.
+
+Structure the script in this order:
+1. A punchy, deadpan introduction.
+2. A brief weather summary for Hastings (mention if an umbrella is needed).
+3. Conversational commentary on 2 of the most interesting headlines.
+4. A quick joke.
+5. An interesting, non-technical maths concept or fact.
+6. An interesting, non-technical science concept or fact.
+7. A brief, thought-provoking philosophical takeaway.
+8. An upbeat sign-off.
 """
 
 response = client.models.generate_content(
