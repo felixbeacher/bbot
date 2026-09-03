@@ -3,7 +3,7 @@ name: Daily Morning Broadcast
 on:
   schedule:
     # 06:17 UTC = 07:17 BST (UK daylight savings time)
-    - cron: '17 6 * * *'
+    - cron: '17 4 * * *'
   workflow_dispatch: # Enables manual "Run workflow" testing button
 
 jobs:
