@@ -4,7 +4,6 @@ import requests  # HTTP library used for sending network requests to retrieve we
 import feedparser  # Parser library designed for fetching and extracting data from RSS and Atom news feeds.[cite: 2]
 from gtts import gTTS  # Google Text-to-Speech library used to convert written text into spoken audio files.[cite: 2]
 from google import genai  # client library for interacting with Gemini models.[cite: 2]
-from tenacity import retry, stop_after_attempt, wait_exponential  # Adds automatic retry logic for API calls
 
 # ==========================================
 # 1. FETCH DATA (WEATHER & NEWS)
@@ -92,19 +91,10 @@ Structure the script in this order:
 8. An upbeat sign-off.
 """[cite: 2]
 
-# Retries the request up to 3 times with exponentially increasing wait times if 503 occurs
-@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-def generate_broadcast():
-    return client.models.generate_content(
-        model='gemini-2.5-flash-lite',
-        contents=prompt
-    )
-
-try:
-    response = generate_broadcast()
-except Exception as e:
-    print(f"❌ Gemini API call failed after retries: {e}")
-    sys.exit(1)
+response = client.models.generate_content(
+    model='gemini-2.5-flash',
+    contents=prompt
+)
 
 # ==========================================
 # 4. CONVERT SCRIPT TO AUDIO (MP3)
