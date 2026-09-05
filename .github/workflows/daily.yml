@@ -1,9 +1,12 @@
-name: Daily Morning Broadcast
+name: Morning, Afternoon & Evening Broadcast
 
 on:
   schedule:
-    # 06:17 UTC = 07:17 BST (UK daylight savings time)
+    # Runs at 06:17, 12:17, and 17:17 UTC
+    # (Equals 07:17, 13:17, and 18:17 BST in UK daylight savings)
     - cron: '17 4 * * *'
+    - cron: '17 6 * * *'
+    - cron: '17 12 * * *'
   workflow_dispatch: # Enables manual "Run workflow" testing button
 
 jobs:
