@@ -1,4 +1,16 @@
+# This file lists the Python packages required by the project so pip can install them automatically in the environment
+
 requests
+# HTTP library used to send API requests for weather data and media uploading
+
 feedparser
+# RSS feed parser used to retrieve BBC news headlines
+
 gTTS
+# Google Text-to-Speech library used to convert generated scripts into MP3 audio
+
 google-genai
+# Official Google GenAI SDK used to generate text using Gemini models
+
+from tenacity import retry, stop_after_attempt, wait_exponential
+# Retries the Gemini API call automatically if it fails
