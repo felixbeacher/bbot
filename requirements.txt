@@ -11,6 +11,3 @@ gTTS
 
 google-genai
 # Official Google GenAI SDK used to generate text using Gemini models
-
-tenacity
-# Retries the Gemini API call automatically if it fails
