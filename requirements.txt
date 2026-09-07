@@ -12,5 +12,5 @@ gTTS
 google-genai
 # Official Google GenAI SDK used to generate text using Gemini models
 
-from tenacity import retry, stop_after_attempt, wait_exponential
+tenacity
 # Retries the Gemini API call automatically if it fails
