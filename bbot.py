@@ -63,7 +63,7 @@ script_text = None
 for attempt in range(3):
     try:
         script_text = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-3.6-flash',
             contents=prompt
         ).text
         break
