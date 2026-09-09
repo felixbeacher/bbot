@@ -1,9 +1,7 @@
 # WORKFLOW: Scheduled Runner for bbot.py
 on:
   schedule:
-    - cron: '17 6 * * *'
-    - cron: '17 12 * * *'
-    - cron: '17 17 * * *'
+    - cron: '38 5 * * *'
   workflow_dispatch:
 
 jobs:
