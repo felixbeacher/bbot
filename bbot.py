@@ -6,6 +6,7 @@ import requests
 import feedparser
 from gtts import gTTS
 from google import genai
+import datetime
 
 # 1. ENVIRONMENT CHECK
 ENV_VARS = ["GEMINI_API_KEY", "GREEN_API_INSTANCE_ID", "GREEN_API_TOKEN", "WHATSAPP_PHONE_NUMBER"]
@@ -71,6 +72,10 @@ for attempt in range(3):
         if attempt == 2:
             sys.exit(f"❌ Gemini Generation Error: {e}")
         time.sleep(2 ** attempt)
+
+################## added bit 
+import datetime
+print(f"⏰ Execution finished at: {datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
 
 # 4. AUDIO CONVERSION & WHATSAPP DELIVERY
 audio_file = 'radio_briefing.mp3'
